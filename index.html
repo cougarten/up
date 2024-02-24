@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>File Encoder/Decoder</title>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const uploadContainer = document.getElementById("uploadContainer");
+        const downloadContainer = document.getElementById("downloadContainer");
+        const toggleModeBtn = document.getElementById("toggleModeBtn");
+
+        // Function to encode the file to base64 and generate a link
+        function encodeFile(file) {
+          const reader = new FileReader();
+          reader.readAsDataURL(file);
+          reader.onload = function () {
+            const base64String = reader.result
+              .replace("data:", "")
+              .replace(/^.+,/, "");
+            const encodedLink = `${
+              window.location.href.split("?")[0]
+            }?file=${encodeURIComponent(
+              base64String
+            )}&name=${encodeURIComponent(file.name)}`;
+            document.getElementById("linkArea").value = encodedLink;
+          };
+        }
+
+        // Event listener for the upload button
+        document
+          .getElementById("uploadBtn")
+          .addEventListener("change", function (event) {
+            if (this.files.length > 0) {
+              encodeFile(this.files[0]);
+            }
+          });
+
+        // Function to set clipboard content
+        function copyToClipboard(text) {
+          const dummy = document.createElement("textarea");
+          document.body.appendChild(dummy);
+          dummy.value = text;
+          dummy.select();
+          document.execCommand("copy");
+          document.body.removeChild(dummy);
+        }
+
+        // Event listener for the copy to clipboard button
+        document
+          .getElementById("copyBtn")
+          .addEventListener("click", function () {
+            const linkArea = document.getElementById("linkArea");
+            if (linkArea.value) {
+              copyToClipboard(linkArea.value);
+              alert("Link copied to clipboard!");
+            }
+          });
+
+        // Function to decode the base64 string and trigger a download
+        function decodeAndDownload(base64Data, fileName) {
+          const link = document.createElement("a");
+          link.href = `data:application/octet-stream;base64,${base64Data}`;
+          link.download = fileName;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
+
+        // Toggle between upload and download mode
+        function toggleMode() {
+          if (uploadContainer.style.display === "none") {
+            uploadContainer.style.display = "block";
+            downloadContainer.style.display = "none";
+            toggleModeBtn.textContent = "Switch to Download Mode";
+          } else {
+            uploadContainer.style.display = "none";
+            downloadContainer.style.display = "block";
+            toggleModeBtn.textContent = "Switch to Upload Mode";
+          }
+        }
+
+        // If the page is loaded with a file argument, create the download button
+        const urlParams = new URLSearchParams(window.location.search);
+        const fileParam = urlParams.get("file");
+        const nameParam = urlParams.get("name");
+
+        if (fileParam && nameParam) {
+          uploadContainer.style.display = "none";
+          toggleModeBtn.textContent = "Switch to Upload Mode";
+
+          const downloadBtn = document.createElement("button");
+          downloadBtn.textContent = "Download File";
+          downloadBtn.addEventListener("click", function () {
+            decodeAndDownload(fileParam, decodeURIComponent(nameParam));
+          });
+          downloadContainer.appendChild(downloadBtn);
+          downloadContainer.style.display = "block";
+        } else {
+          downloadContainer.style.display = "none";
+          toggleModeBtn.textContent = "Switch to Download Mode";
+        }
+
+        // Event listener for the toggle mode button
+        toggleModeBtn.addEventListener("click", toggleMode);
+      });
+    </script>
+  </head>
+  <body>
+    <h1>File Encoder/Decoder</h1>
+    <div id="uploadContainer">
+      <label for="uploadBtn">Upload File to Encode:</label>
+      <input type="file" id="uploadBtn" />
+      <input type="text" id="linkArea" readonly />
+      <button id="copyBtn">Copy to Clipboard</button>
+    </div>
+    <div id="downloadContainer">
+      <!-- Download button will be auto-generated here if needed -->
+    </div>
+    <button id="toggleModeBtn">Switch Mode</button>
+  </body>
+</html>
