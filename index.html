@@ -4,11 +4,46 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>File Encoder/Decoder</title>
+  </head>
+  <body>
+    <h1>File Encoder/Decoder</h1>
+    <div id="imageDisplay" style="text-align: center; margin-bottom: 20px">
+      <!-- Image will be displayed here if uploaded file is an image -->
+    </div>
+    <div id="uploadContainer">
+      <label for="uploadBtn">Upload File to Encode:</label>
+      <input type="file" id="uploadBtn" />
+      <input type="text" id="linkArea" readonly />
+      <button id="copyBtn">Copy to Clipboard</button>
+    </div>
+    <div id="downloadContainer">
+      <!-- Download button will be auto-generated here if needed -->
+    </div>
+    <button id="toggleModeBtn">Switch Mode</button>
+
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         const uploadContainer = document.getElementById("uploadContainer");
         const downloadContainer = document.getElementById("downloadContainer");
         const toggleModeBtn = document.getElementById("toggleModeBtn");
+        const imageDisplay = document.getElementById("imageDisplay");
+
+        // Function to check if the file is an image based on the file extension
+        function isImageFile(fileName) {
+          return /\.(jpg|jpeg|png|gif)$/i.test(fileName);
+        }
+
+        // Function to display the image
+        function displayImage(base64, fileName) {
+          if (isImageFile(fileName)) {
+            const img = document.createElement("img");
+            img.src = base64;
+            img.style.maxWidth = "100%";
+            img.style.maxHeight = "400px";
+            imageDisplay.innerHTML = ""; // Clear any previous images
+            imageDisplay.appendChild(img);
+          }
+        }
 
         // Function to encode the file to base64 and generate a link
         function encodeFile(file) {
@@ -24,6 +59,9 @@
               base64String
             )}&name=${encodeURIComponent(file.name)}`;
             document.getElementById("linkArea").value = encodedLink;
+
+            // Use the displayImage function to display the image
+            //displayImage(reader.result, file.name);
           };
         }
 
@@ -96,6 +134,10 @@
           });
           downloadContainer.appendChild(downloadBtn);
           downloadContainer.style.display = "block";
+
+          // Decode the base64 string to display the image
+          const base64Data = `data:application/octet-stream;base64,${fileParam}`;
+          displayImage(base64Data, decodeURIComponent(nameParam));
         } else {
           downloadContainer.style.display = "none";
           toggleModeBtn.textContent = "Switch to Download Mode";
@@ -105,18 +147,5 @@
         toggleModeBtn.addEventListener("click", toggleMode);
       });
     </script>
-  </head>
-  <body>
-    <h1>File Encoder/Decoder</h1>
-    <div id="uploadContainer">
-      <label for="uploadBtn">Upload File to Encode:</label>
-      <input type="file" id="uploadBtn" />
-      <input type="text" id="linkArea" readonly />
-      <button id="copyBtn">Copy to Clipboard</button>
-    </div>
-    <div id="downloadContainer">
-      <!-- Download button will be auto-generated here if needed -->
-    </div>
-    <button id="toggleModeBtn">Switch Mode</button>
   </body>
 </html>
